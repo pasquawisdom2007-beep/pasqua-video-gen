@@ -1,0 +1,1086 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pasqua Video Gen — AI Cinematic Video API</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎬</text></svg>" />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;600;700;800&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --cyan: #00d4ff;
+      --blue: #0055ff;
+      --purple: #7700ff;
+      --dark: #050510;
+      --dark2: #0a0a1a;
+      --dark3: #0d0d20;
+      --card: #0a0a1f;
+      --border: rgba(0, 212, 255, 0.15);
+      --glow: 0 0 20px rgba(0, 212, 255, 0.4);
+      --glow-strong: 0 0 40px rgba(0, 212, 255, 0.6), 0 0 80px rgba(0, 212, 255, 0.2);
+      --text: #e0f4ff;
+      --muted: #4a6880;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--dark);
+      color: var(--text);
+      font-family: 'JetBrains Mono', monospace;
+      overflow-x: hidden;
+      min-height: 100vh;
+    }
+
+    /* === GRID BACKGROUND === */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(0, 212, 255, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 212, 255, 0.03) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    body::after {
+      content: '';
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+      animation: scanline 6s linear infinite;
+      z-index: 100;
+      opacity: 0.6;
+    }
+
+    @keyframes scanline {
+      0% { top: 0; }
+      100% { top: 100vh; }
+    }
+
+    /* === NAV === */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 99;
+      padding: 16px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(5, 5, 16, 0.85);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .nav-logo {
+      font-family: 'Orbitron', sans-serif;
+      font-weight: 900;
+      font-size: 1.1rem;
+      color: var(--cyan);
+      text-shadow: var(--glow);
+      letter-spacing: 2px;
+    }
+
+    .nav-logo span { color: #fff; }
+
+    .nav-links {
+      display: flex;
+      gap: 28px;
+      list-style: none;
+    }
+
+    .nav-links a {
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 0.75rem;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      transition: color 0.2s, text-shadow 0.2s;
+    }
+
+    .nav-links a:hover {
+      color: var(--cyan);
+      text-shadow: var(--glow);
+    }
+
+    .status-badge {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.7rem;
+      color: #00ff88;
+      border: 1px solid rgba(0, 255, 136, 0.2);
+      padding: 6px 14px;
+      border-radius: 20px;
+      background: rgba(0, 255, 136, 0.05);
+    }
+
+    .status-dot {
+      width: 7px; height: 7px;
+      background: #00ff88;
+      border-radius: 50%;
+      animation: pulse-green 2s ease-in-out infinite;
+      box-shadow: 0 0 8px #00ff88;
+    }
+
+    @keyframes pulse-green {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(0.8); }
+    }
+
+    /* === HERO === */
+    .hero {
+      position: relative;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 120px 24px 80px;
+      z-index: 1;
+    }
+
+    .hero-tag {
+      font-size: 0.7rem;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: var(--cyan);
+      border: 1px solid var(--border);
+      padding: 8px 20px;
+      border-radius: 20px;
+      margin-bottom: 32px;
+      background: rgba(0, 212, 255, 0.05);
+      animation: fadeUp 0.6s ease both;
+    }
+
+    .hero-title {
+      font-family: 'Orbitron', sans-serif;
+      font-size: clamp(2.4rem, 7vw, 5.5rem);
+      font-weight: 900;
+      line-height: 1.05;
+      margin-bottom: 12px;
+      animation: fadeUp 0.7s ease both;
+      animation-delay: 0.1s;
+    }
+
+    .hero-title .line1 {
+      display: block;
+      color: #fff;
+    }
+
+    .hero-title .line2 {
+      display: block;
+      background: linear-gradient(135deg, var(--cyan), var(--blue), var(--purple));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      filter: drop-shadow(0 0 30px rgba(0, 212, 255, 0.5));
+    }
+
+    .hero-sub {
+      font-size: clamp(0.85rem, 2vw, 1rem);
+      color: var(--muted);
+      max-width: 560px;
+      line-height: 1.8;
+      margin-bottom: 48px;
+      animation: fadeUp 0.8s ease both;
+      animation-delay: 0.2s;
+    }
+
+    .hero-sub strong { color: var(--cyan); font-weight: 600; }
+
+    .hero-buttons {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      justify-content: center;
+      animation: fadeUp 0.9s ease both;
+      animation-delay: 0.3s;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--cyan), var(--blue));
+      color: #000;
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 700;
+      font-size: 0.85rem;
+      padding: 14px 32px;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+      text-decoration: none;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      transition: all 0.2s;
+      box-shadow: 0 0 30px rgba(0, 212, 255, 0.3);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 0 50px rgba(0, 212, 255, 0.6);
+    }
+
+    .btn-secondary {
+      background: transparent;
+      color: var(--cyan);
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 600;
+      font-size: 0.85rem;
+      padding: 13px 32px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      cursor: pointer;
+      text-decoration: none;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      transition: all 0.2s;
+    }
+
+    .btn-secondary:hover {
+      border-color: var(--cyan);
+      background: rgba(0, 212, 255, 0.07);
+      box-shadow: var(--glow);
+    }
+
+    /* === FLOATING DEMO CARD === */
+    .hero-demo {
+      margin-top: 64px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+      max-width: 580px;
+      width: 100%;
+      text-align: left;
+      animation: fadeUp 1s ease both;
+      animation-delay: 0.4s;
+      box-shadow: var(--glow), inset 0 0 60px rgba(0, 212, 255, 0.02);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-demo::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+    }
+
+    .demo-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .dot { width: 10px; height: 10px; border-radius: 50%; }
+    .dot-r { background: #ff5f57; }
+    .dot-y { background: #febc2e; }
+    .dot-g { background: #28c840; }
+
+    .demo-label {
+      font-size: 0.65rem;
+      color: var(--muted);
+      margin-left: auto;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+
+    .code-block {
+      font-size: 0.78rem;
+      line-height: 1.9;
+      color: #8bb8d0;
+    }
+
+    .code-block .kw { color: var(--cyan); }
+    .code-block .str { color: #00ff88; }
+    .code-block .fn { color: #ff9f43; }
+    .code-block .cm { color: #3a4a5a; }
+    .code-block .num { color: #ff6b9d; }
+
+    /* === SECTION BASE === */
+    section {
+      position: relative;
+      z-index: 1;
+      padding: 100px 24px;
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .section-tag {
+      font-size: 0.65rem;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: var(--cyan);
+      margin-bottom: 12px;
+      display: block;
+    }
+
+    .section-title {
+      font-family: 'Orbitron', sans-serif;
+      font-size: clamp(1.5rem, 4vw, 2.5rem);
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 16px;
+      line-height: 1.2;
+    }
+
+    .section-sub {
+      color: var(--muted);
+      font-size: 0.85rem;
+      line-height: 1.8;
+      max-width: 520px;
+      margin-bottom: 56px;
+    }
+
+    /* === HOW IT WORKS === */
+    #how { background: var(--dark2); }
+
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 24px;
+    }
+
+    .step-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 32px 28px;
+      position: relative;
+      overflow: hidden;
+      transition: border-color 0.3s, box-shadow 0.3s;
+    }
+
+    .step-card:hover {
+      border-color: rgba(0, 212, 255, 0.4);
+      box-shadow: var(--glow);
+    }
+
+    .step-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, var(--blue), var(--cyan), var(--purple));
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    .step-card:hover::before { opacity: 1; }
+
+    .step-num {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 3rem;
+      font-weight: 900;
+      color: rgba(0, 212, 255, 0.1);
+      position: absolute;
+      top: 16px;
+      right: 20px;
+      line-height: 1;
+    }
+
+    .step-icon {
+      font-size: 2rem;
+      margin-bottom: 20px;
+    }
+
+    .step-title {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 12px;
+      letter-spacing: 1px;
+    }
+
+    .step-desc {
+      font-size: 0.78rem;
+      color: var(--muted);
+      line-height: 1.8;
+    }
+
+    /* === MODELS === */
+    #models { background: var(--dark); }
+
+    .models-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+    }
+
+    .model-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 28px;
+      transition: all 0.3s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .model-card.featured {
+      border-color: rgba(0, 212, 255, 0.35);
+      box-shadow: var(--glow);
+    }
+
+    .model-card.featured::before {
+      content: 'RECOMMENDED';
+      position: absolute;
+      top: 14px; right: 14px;
+      font-size: 0.6rem;
+      letter-spacing: 2px;
+      color: var(--cyan);
+      background: rgba(0, 212, 255, 0.1);
+      border: 1px solid rgba(0, 212, 255, 0.2);
+      padding: 4px 10px;
+      border-radius: 20px;
+    }
+
+    .model-card:hover {
+      border-color: rgba(0, 212, 255, 0.4);
+      transform: translateY(-4px);
+      box-shadow: var(--glow);
+    }
+
+    .model-name {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--cyan);
+      margin-bottom: 8px;
+    }
+
+    .model-desc {
+      font-size: 0.78rem;
+      color: var(--muted);
+      line-height: 1.7;
+      margin-bottom: 20px;
+    }
+
+    .model-stats {
+      display: flex;
+      gap: 16px;
+    }
+
+    .stat {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .stat-label {
+      font-size: 0.6rem;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .stat-value {
+      font-size: 0.8rem;
+      color: #fff;
+      font-weight: 600;
+    }
+
+    .quality-dots {
+      display: flex;
+      gap: 4px;
+    }
+
+    .qdot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--cyan);
+      box-shadow: 0 0 6px var(--cyan);
+    }
+
+    .qdot.off {
+      background: rgba(0, 212, 255, 0.15);
+      box-shadow: none;
+    }
+
+    /* === API DOCS === */
+    #docs { background: var(--dark2); }
+
+    .endpoints {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .endpoint-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+      transition: border-color 0.3s;
+    }
+
+    .endpoint-card:hover {
+      border-color: rgba(0, 212, 255, 0.3);
+    }
+
+    .endpoint-header {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 18px 24px;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .method {
+      font-size: 0.7rem;
+      font-weight: 800;
+      letter-spacing: 1px;
+      padding: 5px 12px;
+      border-radius: 4px;
+      min-width: 52px;
+      text-align: center;
+    }
+
+    .method.post { background: rgba(0, 212, 255, 0.15); color: var(--cyan); border: 1px solid rgba(0, 212, 255, 0.3); }
+    .method.get { background: rgba(0, 255, 136, 0.1); color: #00ff88; border: 1px solid rgba(0, 255, 136, 0.2); }
+
+    .endpoint-path {
+      font-size: 0.88rem;
+      color: #fff;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+    }
+
+    .endpoint-desc {
+      font-size: 0.72rem;
+      color: var(--muted);
+      margin-left: auto;
+    }
+
+    .endpoint-body {
+      padding: 0 24px 24px;
+      border-top: 1px solid var(--border);
+    }
+
+    .param-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 16px;
+      font-size: 0.75rem;
+    }
+
+    .param-table th {
+      text-align: left;
+      color: var(--muted);
+      font-weight: 600;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      font-size: 0.65rem;
+      padding: 8px 12px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .param-table td {
+      padding: 10px 12px;
+      border-bottom: 1px solid rgba(0, 212, 255, 0.05);
+      color: #8bb8d0;
+      line-height: 1.6;
+    }
+
+    .param-table td:first-child { color: var(--cyan); font-weight: 600; }
+    .param-table td .required { color: #ff6b9d; font-size: 0.65rem; margin-left: 6px; }
+    .param-table td .optional { color: var(--muted); font-size: 0.65rem; margin-left: 6px; }
+
+    /* === CODE EXAMPLE === */
+    #code { background: var(--dark); }
+
+    .code-window {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: var(--glow);
+    }
+
+    .code-window-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 14px 20px;
+      background: rgba(0, 0, 0, 0.3);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .code-window-title {
+      font-size: 0.72rem;
+      color: var(--muted);
+      margin-left: 8px;
+      letter-spacing: 1px;
+    }
+
+    .code-tabs {
+      display: flex;
+      gap: 0;
+      margin-left: auto;
+    }
+
+    .code-tab {
+      font-size: 0.7rem;
+      padding: 4px 14px;
+      color: var(--muted);
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      letter-spacing: 1px;
+      transition: all 0.2s;
+    }
+
+    .code-tab.active {
+      color: var(--cyan);
+      border-bottom-color: var(--cyan);
+    }
+
+    .code-content {
+      padding: 28px;
+      font-size: 0.8rem;
+      line-height: 2;
+      overflow-x: auto;
+    }
+
+    .code-content .kw { color: #c792ea; }
+    .code-content .str { color: #c3e88d; }
+    .code-content .fn { color: #82aaff; }
+    .code-content .cm { color: #3a5060; }
+    .code-content .num { color: #f78c6c; }
+    .code-content .obj { color: var(--cyan); }
+    .code-content .key { color: #ff9f43; }
+
+    /* === FOOTER === */
+    footer {
+      position: relative;
+      z-index: 1;
+      background: var(--dark2);
+      border-top: 1px solid var(--border);
+      padding: 48px 24px;
+      text-align: center;
+    }
+
+    .footer-logo {
+      font-family: 'Orbitron', sans-serif;
+      font-weight: 900;
+      font-size: 1.3rem;
+      color: var(--cyan);
+      text-shadow: var(--glow);
+      margin-bottom: 12px;
+    }
+
+    .footer-sub {
+      font-size: 0.72rem;
+      color: var(--muted);
+      margin-bottom: 28px;
+      line-height: 1.8;
+    }
+
+    .footer-links {
+      display: flex;
+      justify-content: center;
+      gap: 28px;
+      list-style: none;
+      margin-bottom: 32px;
+    }
+
+    .footer-links a {
+      font-size: 0.72rem;
+      color: var(--muted);
+      text-decoration: none;
+      letter-spacing: 1px;
+      transition: color 0.2s;
+    }
+
+    .footer-links a:hover { color: var(--cyan); }
+
+    .footer-copy {
+      font-size: 0.68rem;
+      color: rgba(74, 104, 128, 0.5);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+
+    /* === DIVIDER === */
+    .cyber-divider {
+      width: 100%;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--cyan), var(--purple), var(--cyan), transparent);
+      opacity: 0.3;
+      margin: 0;
+    }
+
+    /* === ANIMATIONS === */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* === GLOW ORB === */
+    .glow-orb {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(100px);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .orb1 {
+      width: 600px; height: 600px;
+      background: radial-gradient(circle, rgba(0, 212, 255, 0.06), transparent 70%);
+      top: -200px; right: -200px;
+    }
+
+    .orb2 {
+      width: 500px; height: 500px;
+      background: radial-gradient(circle, rgba(119, 0, 255, 0.05), transparent 70%);
+      bottom: 20%; left: -150px;
+    }
+
+    /* === RESPONSIVE === */
+    @media (max-width: 640px) {
+      nav { padding: 14px 16px; }
+      .nav-links { display: none; }
+      .hero { padding: 100px 16px 60px; }
+      section { padding: 70px 16px; }
+      .hero-buttons { flex-direction: column; align-items: stretch; }
+      .endpoint-desc { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="glow-orb orb1"></div>
+  <div class="glow-orb orb2"></div>
+
+  <!-- NAV -->
+  <nav>
+    <div class="nav-logo">PASQUA<span> VIDEO GEN</span></div>
+    <ul class="nav-links">
+      <li><a href="#how">How It Works</a></li>
+      <li><a href="#models">Models</a></li>
+      <li><a href="#docs">API Docs</a></li>
+      <li><a href="#code">Examples</a></li>
+    </ul>
+    <div class="status-badge">
+      <div class="status-dot"></div>
+      API ONLINE
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-tag">// Powered by Open-Source AI Models</div>
+    <h1 class="hero-title">
+      <span class="line1">PASQUA</span>
+      <span class="line2">VIDEO GEN</span>
+    </h1>
+    <p class="hero-sub">
+      Send an image + a text prompt.<br />
+      Get back a <strong>cinematic AI-generated video</strong>.<br />
+      No Replicate. No Kling. 100% free open-source models.
+    </p>
+    <div class="hero-buttons">
+      <a href="#docs" class="btn-primary">View API Docs</a>
+      <a href="#code" class="btn-secondary">See Examples</a>
+    </div>
+
+    <div class="hero-demo">
+      <div class="demo-bar">
+        <div class="dot dot-r"></div>
+        <div class="dot dot-y"></div>
+        <div class="dot dot-g"></div>
+        <span class="demo-label">POST /api/generate</span>
+      </div>
+      <div class="code-block">
+        <span class="cm">// 1. send your image + prompt</span><br/>
+        <span class="kw">const</span> form = <span class="kw">new</span> <span class="fn">FormData</span>();<br/>
+        form.<span class="fn">append</span>(<span class="str">'image'</span>, imageFile);<br/>
+        form.<span class="fn">append</span>(<span class="str">'prompt'</span>, <span class="str">'walk through Tokyo at night in the rain'</span>);<br/>
+        form.<span class="fn">append</span>(<span class="str">'model'</span>, <span class="str">'cogvideox'</span>);<br/><br/>
+        <span class="cm">// 2. get a job_id back instantly</span><br/>
+        <span class="kw">const</span> { job_id } = <span class="kw">await</span> <span class="fn">generate</span>(form);<br/><br/>
+        <span class="cm">// 3. poll status → video URL ready 🎬</span><br/>
+        <span class="kw">const</span> video = <span class="kw">await</span> <span class="fn">waitForVideo</span>(job_id);
+      </div>
+    </div>
+  </div>
+
+  <div class="cyber-divider"></div>
+
+  <!-- HOW IT WORKS -->
+  <section id="how">
+    <div class="container">
+      <span class="section-tag">// Process</span>
+      <h2 class="section-title">How It Works</h2>
+      <p class="section-sub">Three steps. No setup. No credit card. Just an API call.</p>
+
+      <div class="steps">
+        <div class="step-card">
+          <div class="step-num">01</div>
+          <div class="step-icon">🖼️</div>
+          <div class="step-title">SEND IMAGE + PROMPT</div>
+          <div class="step-desc">POST your image file and a text prompt describing the motion. "Person walking through rainy Tokyo streets at night." That's all you need.</div>
+        </div>
+        <div class="step-card">
+          <div class="step-num">02</div>
+          <div class="step-icon">⚡</div>
+          <div class="step-title">AI GENERATES THE VIDEO</div>
+          <div class="step-desc">Your request gets routed to CogVideoX-5B running on HuggingFace Spaces. The model animates your image with cinematic motion. Estimated time: 2–5 minutes.</div>
+        </div>
+        <div class="step-card">
+          <div class="step-num">03</div>
+          <div class="step-icon">🎬</div>
+          <div class="step-title">DOWNLOAD YOUR VIDEO</div>
+          <div class="step-desc">Poll the status endpoint until the video is ready. Then hit the download endpoint — you get a full MP4 back. Stream it, forward it, send it on WhatsApp.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="cyber-divider"></div>
+
+  <!-- MODELS -->
+  <section id="models">
+    <div class="container">
+      <span class="section-tag">// Models</span>
+      <h2 class="section-title">Available Models</h2>
+      <p class="section-sub">Three open-source models. Each optimized for different use cases. All free.</p>
+
+      <div class="models-grid">
+        <div class="model-card featured">
+          <div class="model-name">CogVideoX-5B</div>
+          <div class="model-desc">The flagship model. Best cinematic quality, complex motion, realistic lighting and environment animation. The one that makes people ask "how is this possible."</div>
+          <div class="model-stats">
+            <div class="stat">
+              <span class="stat-label">Quality</span>
+              <div class="quality-dots">
+                <div class="qdot"></div><div class="qdot"></div><div class="qdot"></div>
+              </div>
+            </div>
+            <div class="stat">
+              <span class="stat-label">Speed</span>
+              <span class="stat-value">2–5 min</span>
+            </div>
+            <div class="stat">
+              <span class="stat-label">Key</span>
+              <span class="stat-value">cogvideox</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="model-card">
+          <div class="model-name">Stable Video Diffusion</div>
+          <div class="model-desc">Fast image-to-video animation. Great for smooth motion effects, object movement, and camera pans. Best when you want speed over complexity.</div>
+          <div class="model-stats">
+            <div class="stat">
+              <span class="stat-label">Quality</span>
+              <div class="quality-dots">
+                <div class="qdot"></div><div class="qdot"></div><div class="qdot off"></div>
+              </div>
+            </div>
+            <div class="stat">
+              <span class="stat-label">Speed</span>
+              <span class="stat-value">1–2 min</span>
+            </div>
+            <div class="stat">
+              <span class="stat-label">Key</span>
+              <span class="stat-value">svd</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="model-card">
+          <div class="model-name">AnimateDiff</div>
+          <div class="model-desc">Stylized smooth animation with consistent motion. Works best for artistic, illustrated, or stylized images. Great fallback when other models are busy.</div>
+          <div class="model-stats">
+            <div class="stat">
+              <span class="stat-label">Quality</span>
+              <div class="quality-dots">
+                <div class="qdot"></div><div class="qdot"></div><div class="qdot off"></div>
+              </div>
+            </div>
+            <div class="stat">
+              <span class="stat-label">Speed</span>
+              <span class="stat-value">1–2 min</span>
+            </div>
+            <div class="stat">
+              <span class="stat-label">Key</span>
+              <span class="stat-value">animatediff</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="cyber-divider"></div>
+
+  <!-- API DOCS -->
+  <section id="docs">
+    <div class="container">
+      <span class="section-tag">// Reference</span>
+      <h2 class="section-title">API Documentation</h2>
+      <p class="section-sub">All endpoints return JSON. Videos are streamed as MP4. No auth required for basic usage.</p>
+
+      <div class="endpoints">
+
+        <div class="endpoint-card">
+          <div class="endpoint-header">
+            <span class="method post">POST</span>
+            <span class="endpoint-path">/api/generate</span>
+            <span class="endpoint-desc">Start video generation</span>
+          </div>
+          <div class="endpoint-body">
+            <table class="param-table">
+              <tr><th>Field</th><th>Type</th><th>Description</th></tr>
+              <tr><td>image <span class="required">required</span></td><td>File</td><td>Image file (jpg/png/webp, max 10MB)</td></tr>
+              <tr><td>prompt <span class="required">required</span></td><td>String</td><td>Motion description. Be cinematic: "rain falls on the neon-lit streets as she walks away"</td></tr>
+              <tr><td>model <span class="optional">optional</span></td><td>String</td><td>cogvideox | svd | animatediff (default: cogvideox)</td></tr>
+              <tr><td>steps <span class="optional">optional</span></td><td>Number</td><td>Inference steps 20–100 (default: 50). More = better quality, slower</td></tr>
+              <tr><td>seed <span class="optional">optional</span></td><td>Number</td><td>Random seed. -1 for random (default: -1)</td></tr>
+            </table>
+          </div>
+        </div>
+
+        <div class="endpoint-card">
+          <div class="endpoint-header">
+            <span class="method get">GET</span>
+            <span class="endpoint-path">/api/status/:job_id</span>
+            <span class="endpoint-desc">Poll generation status</span>
+          </div>
+          <div class="endpoint-body">
+            <table class="param-table">
+              <tr><th>Status</th><th>Meaning</th><th>Action</th></tr>
+              <tr><td>pending</td><td>String</td><td>Queued, will start soon. Keep polling.</td></tr>
+              <tr><td>processing</td><td>String</td><td>Generating now. Poll every 8–10s.</td></tr>
+              <tr><td>done</td><td>String</td><td>video_url and download_url are in the response ✅</td></tr>
+              <tr><td>failed</td><td>String</td><td>Error in response. Retry with different model.</td></tr>
+            </table>
+          </div>
+        </div>
+
+        <div class="endpoint-card">
+          <div class="endpoint-header">
+            <span class="method get">GET</span>
+            <span class="endpoint-path">/api/video/:job_id</span>
+            <span class="endpoint-desc">Download video MP4</span>
+          </div>
+          <div class="endpoint-body">
+            <table class="param-table">
+              <tr><th>Feature</th><th>Detail</th></tr>
+              <tr><td>Format</td><td>video/mp4 with full range request support</td></tr>
+              <tr><td>Availability</td><td>Available 2 hours after generation (auto-cleanup)</td></tr>
+              <tr><td>Headers</td><td>X-Job-Id, X-Model-Used, X-Space-Used returned</td></tr>
+            </table>
+          </div>
+        </div>
+
+        <div class="endpoint-card">
+          <div class="endpoint-header">
+            <span class="method get">GET</span>
+            <span class="endpoint-path">/api/generate/models</span>
+            <span class="endpoint-desc">List available models</span>
+          </div>
+          <div class="endpoint-body">
+            <table class="param-table">
+              <tr><th>Returns</th><th>Detail</th></tr>
+              <tr><td>models[]</td><td>Array of available models with their HuggingFace spaces</td></tr>
+              <tr><td>default</td><td>The recommended default model key</td></tr>
+            </table>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <div class="cyber-divider"></div>
+
+  <!-- CODE EXAMPLES -->
+  <section id="code">
+    <div class="container">
+      <span class="section-tag">// Examples</span>
+      <h2 class="section-title">Code Examples</h2>
+      <p class="section-sub">Copy-paste ready. Works in any Node.js environment including WhatsApp bots.</p>
+
+      <div class="code-window">
+        <div class="code-window-bar">
+          <div class="dot dot-r"></div>
+          <div class="dot dot-y"></div>
+          <div class="dot dot-g"></div>
+          <span class="code-window-title">whatsapp-bot-integration.js</span>
+        </div>
+        <div class="code-content">
+<span class="cm">// WhatsApp Bot — Image to Cinematic Video</span><br/>
+<span class="kw">const</span> <span class="obj">FormData</span> = <span class="fn">require</span>(<span class="str">'form-data'</span>);<br/>
+<span class="kw">const</span> <span class="obj">fs</span> = <span class="fn">require</span>(<span class="str">'fs'</span>);<br/>
+<span class="kw">const</span> <span class="obj">fetch</span> = <span class="fn">require</span>(<span class="str">'node-fetch'</span>);<br/><br/>
+
+<span class="kw">const</span> <span class="key">API_BASE</span> = <span class="str">'https://your-api.onrender.com'</span>;<br/><br/>
+
+<span class="kw">async function</span> <span class="fn">imageToVideo</span>(imagePath, prompt, model = <span class="str">'cogvideox'</span>) {<br/>
+&nbsp;&nbsp;<span class="kw">const</span> form = <span class="kw">new</span> <span class="fn">FormData</span>();<br/>
+&nbsp;&nbsp;form.<span class="fn">append</span>(<span class="str">'image'</span>, <span class="obj">fs</span>.<span class="fn">createReadStream</span>(imagePath));<br/>
+&nbsp;&nbsp;form.<span class="fn">append</span>(<span class="str">'prompt'</span>, prompt);<br/>
+&nbsp;&nbsp;form.<span class="fn">append</span>(<span class="str">'model'</span>, model);<br/><br/>
+
+&nbsp;&nbsp;<span class="cm">// 1. start generation</span><br/>
+&nbsp;&nbsp;<span class="kw">const</span> res = <span class="kw">await</span> <span class="fn">fetch</span>(<span class="str">`${API_BASE}/api/generate`</span>, {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="key">method</span>: <span class="str">'POST'</span>, <span class="key">body</span>: form<br/>
+&nbsp;&nbsp;});<br/>
+&nbsp;&nbsp;<span class="kw">const</span> { <span class="key">job_id</span> } = <span class="kw">await</span> res.<span class="fn">json</span>();<br/><br/>
+
+&nbsp;&nbsp;<span class="cm">// 2. poll until done</span><br/>
+&nbsp;&nbsp;<span class="kw">while</span> (<span class="kw">true</span>) {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">await</span> <span class="kw">new</span> <span class="fn">Promise</span>(r => <span class="fn">setTimeout</span>(r, <span class="num">8000</span>));<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">const</span> status = <span class="kw">await</span> <span class="fn">fetch</span>(<span class="str">`${API_BASE}/api/status/${job_id}`</span>).<span class="fn">then</span>(r => r.<span class="fn">json</span>());<br/><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">if</span> (status.<span class="key">status</span> === <span class="str">'done'</span>) <span class="kw">return</span> <span class="str">`${API_BASE}`</span> + status.<span class="key">download_url</span>;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">if</span> (status.<span class="key">status</span> === <span class="str">'failed'</span>) <span class="kw">throw new</span> <span class="fn">Error</span>(status.<span class="key">error</span>);<br/>
+&nbsp;&nbsp;}<br/>
+}<br/><br/>
+
+<span class="cm">// Usage in your bot command handler:</span><br/>
+<span class="kw">bot</span>.<span class="fn">on</span>(<span class="str">'message'</span>, <span class="kw">async</span> (msg) => {<br/>
+&nbsp;&nbsp;<span class="kw">if</span> (msg.<span class="key">hasMedia</span> && msg.<span class="key">body</span>.<span class="fn">startsWith</span>(<span class="str">'.video '</span>)) {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">const</span> prompt = msg.<span class="key">body</span>.<span class="fn">slice</span>(<span class="num">7</span>);<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;msg.<span class="fn">reply</span>(<span class="str">'🎬 Generating your cinematic video...'</span>);<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">const</span> media = <span class="kw">await</span> msg.<span class="fn">downloadMedia</span>();<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">const</span> videoUrl = <span class="kw">await</span> <span class="fn">imageToVideo</span>(media, prompt);<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;msg.<span class="fn">reply</span>(videoUrl);<br/>
+&nbsp;&nbsp;}<br/>
+});
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-logo">PASQUA VIDEO GEN</div>
+    <p class="footer-sub">
+      Open-source AI video generation API.<br/>
+      Built by <strong>PASQUA TECH</strong> • @Pasquaking
+    </p>
+    <ul class="footer-links">
+      <li><a href="#docs">API Docs</a></li>
+      <li><a href="#models">Models</a></li>
+      <li><a href="#code">Examples</a></li>
+      <li><a href="/health">API Status</a></li>
+    </ul>
+    <div class="footer-copy">PASQUA TECH © 2026 — All models run on HuggingFace open-source infrastructure</div>
+  </footer>
+
+</body>
+</html>
