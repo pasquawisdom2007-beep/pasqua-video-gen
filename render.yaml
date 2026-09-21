@@ -1,0 +1,27 @@
+services:
+  - type: web
+    name: cinematic-video-api
+    env: node
+    region: oregon
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3000
+      - key: MAX_CONCURRENT_JOBS
+        value: 2
+      - key: RATE_MAX_REQUESTS
+        value: 5
+      - key: RATE_WINDOW_MS
+        value: 60000
+      - key: HF_TOKEN
+        sync: false
+      - key: ADMIN_KEY
+        generateValue: true
+    disk:
+      name: tmp-storage
+      mountPath: /tmp
+      sizeGB: 1
